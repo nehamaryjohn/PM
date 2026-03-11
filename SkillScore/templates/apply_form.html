@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-area" style="margin-left: 280px; padding: 3rem;">
+    <div class="stat-card mx-auto" style="max-width: 600px;">
+        <h3 class="fw-bold mb-4">Apply for {{ job.title }}</h3>
+        <form action="/apply/{{ job.id }}" method="POST" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="full_name" class="form-control" required>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email" class="form-control" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" class="form-control" required>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Academic CGPA</label>
+                <input type="number" step="0.01" name="cgpa" class="form-control" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label">Upload Resume (PDF/DOCX)</label>
+                <input type="file" name="resume" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 rounded-pill">Submit Application</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

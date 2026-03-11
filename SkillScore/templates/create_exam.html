@@ -1,0 +1,153 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center py-5" style="background-color: #f8fafc; min-height: 100vh;">
+    <div class="col-md-9">
+        <div class="card border-0 shadow-sm p-4" style="border-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold mb-0 text-primary"><i class="bi bi-journal-plus me-2"></i>Create New Examination</h3>
+                <span class="badge bg-secondary px-3 py-2 rounded-pill" id="question-count">1 Question</span>
+            </div>
+
+            <form action="/create_exam" method="post" id="examForm">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">Exam Title</label>
+                        <input type="text" name="title" class="form-control form-control-lg" placeholder="e.g. Python Advanced Concepts" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Category</label>
+                        <select name="category" class="form-select form-select-lg">
+                            <option value="Academic">Academic</option>
+                            <option value="Placement">Placement Aptitude</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25">
+
+                <div id="questions-container">
+                    <div class="question-block bg-light p-4 rounded-4 mb-4 border border-1 position-relative">
+                        <h5 class="fw-bold mb-3 text-dark">Question #1</h5>
+                        
+                        <div class="mb-3">
+                            <textarea name="q_text[]" class="form-control" rows="2" placeholder="Enter your question here..." required></textarea>
+                        </div>
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">A</span>
+                                    <input type="text" name="a[]" class="form-control" placeholder="Option A" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">B</span>
+                                    <input type="text" name="b[]" class="form-control" placeholder="Option B" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">C</span>
+                                    <input type="text" name="c[]" class="form-control" placeholder="Option C" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">D</span>
+                                    <input type="text" name="d[]" class="form-control" placeholder="Option D" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <label class="small fw-bold">Correct Option</label>
+                                <select name="correct[]" class="form-select border-primary">
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="small fw-bold">Explanation</label>
+                                <input type="text" name="exp[]" class="form-control" placeholder="Why is this answer correct?">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4" id="add-question">
+                        <i class="bi bi-plus-circle me-2"></i>Add Another Question
+                    </button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 flex-grow-1 fw-bold shadow">
+                        Publish Exam
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    let qCount = 1;
+    const container = document.getElementById('questions-container');
+    const addButton = document.getElementById('add-question');
+    const countDisplay = document.getElementById('question-count');
+
+    addButton.addEventListener('click', () => {
+        qCount++;
+        const newBlock = document.createElement('div');
+        newBlock.className = 'question-block bg-light p-4 rounded-4 mb-4 border border-1 fade-in animate__animated animate__fadeInUp';
+        newBlock.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <h5 class="fw-bold mb-3 text-dark">Question #${qCount}</h5>
+                <button type="button" class="btn-close remove-q" aria-label="Close"></button>
+            </div>
+            <div class="mb-3">
+                <textarea name="q_text[]" class="form-control" rows="2" placeholder="Enter your question here..." required></textarea>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-white">A</span><input type="text" name="a[]" class="form-control" required></div></div>
+                <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-white">B</span><input type="text" name="b[]" class="form-control" required></div></div>
+                <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-white">C</span><input type="text" name="c[]" class="form-control" required></div></div>
+                <div class="col-md-6"><div class="input-group"><span class="input-group-text bg-white">D</span><input type="text" name="d[]" class="form-control" required></div></div>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-md-4"><label class="small fw-bold">Correct Option</label><select name="correct[]" class="form-select border-primary"><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option></select></div>
+                <div class="col-md-8"><label class="small fw-bold">Explanation</label><input type="text" name="exp[]" class="form-control"></div>
+            </div>
+        `;
+        container.appendChild(newBlock);
+        updateCount();
+    });
+
+    // Remove question logic
+    container.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-q')) {
+            e.target.closest('.question-block').remove();
+            qCount--;
+            updateCount();
+        }
+    });
+
+    function updateCount() {
+        countDisplay.innerText = `${qCount} Question${qCount > 1 ? 's' : ''}`;
+    }
+</script>
+
+<style>
+    .question-block {
+        transition: all 0.3s ease;
+    }
+    .question-block:hover {
+        border-color: #0d6efd !important;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    .remove-q {
+        cursor: pointer;
+    }
+</style>
+{% endblock %}

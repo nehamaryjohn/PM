@@ -1,0 +1,100 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-9">
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
+                <h3 class="mb-0">{{ exam.title }}</h3>
+                <div class="text-end">
+                    <span class="badge bg-light text-primary mb-1">{{ exam.category }}</span>
+                    <h4 id="timer" class="mb-0 fw-bold text-warning">Time Left: 10:00</h4>
+                </div>
+            </div>
+            
+            <div class="card-body p-4">
+                <form action="/submit_exam/{{ exam.id }}" method="post" id="examForm">
+                    {% for q in questions %}
+                    <div class="mb-5 p-4 rounded-3 border-start border-4 border-primary bg-light shadow-sm">
+                        <h5 class="mb-4">
+                            <span class="badge bg-primary me-2">Question {{ loop.index }}</span> 
+                            {{ q.question_text }}
+                        </h5>
+                        
+                        <div class="form-check custom-radio mb-3">
+                            <input class="form-check-input" type="radio" name="question_{{ q.id }}" value="A" id="q{{ q.id }}a" required>
+                            <label class="form-check-label w-100 p-2 rounded" for="q{{ q.id }}a">
+                                <strong>A)</strong> {{ q.option_a }}
+                            </label>
+                        </div>
+                        
+                        <div class="form-check custom-radio mb-3">
+                            <input class="form-check-input" type="radio" name="question_{{ q.id }}" value="B" id="q{{ q.id }}b">
+                            <label class="form-check-label w-100 p-2 rounded" for="q{{ q.id }}b">
+                                <strong>B)</strong> {{ q.option_b }}
+                            </label>
+                        </div>
+                        
+                        <div class="form-check custom-radio mb-3">
+                            <input class="form-check-input" type="radio" name="question_{{ q.id }}" value="C" id="q{{ q.id }}c">
+                            <label class="form-check-label w-100 p-2 rounded" for="q{{ q.id }}c">
+                                <strong>C)</strong> {{ q.option_c }}
+                            </label>
+                        </div>
+                        
+                        <div class="form-check custom-radio mb-3">
+                            <input class="form-check-input" type="radio" name="question_{{ q.id }}" value="D" id="q{{ q.id }}d">
+                            <label class="form-check-label w-100 p-2 rounded" for="q{{ q.id }}d">
+                                <strong>D)</strong> {{ q.option_d }}
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <div class="text-center mt-5 mb-4">
+                        <button type="submit" class="btn btn-success btn-lg px-5 py-3 shadow-lg fw-bold rounded-pill">
+                            Submit All Answers
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set time for 10 minutes (600 seconds)
+    let timeLeft = 600; 
+    const timerElement = document.getElementById('timer');
+
+    const countdown = setInterval(() => {
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            alert("Time's up! Your answers are being submitted automatically.");
+            document.getElementById('examForm').submit();
+        } else {
+            let mins = Math.floor(timeLeft / 60);
+            let secs = timeLeft % 60;
+            timerElement.innerHTML = `Time Left: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            
+            // Turn timer red when under 1 minute
+            if(timeLeft < 60) {
+                timerElement.classList.remove('text-warning');
+                timerElement.classList.add('text-danger');
+            }
+        }
+        timeLeft -= 1;
+    }, 1000);
+</script>
+
+<style>
+    /* Styling to make labels look more interactive */
+    .form-check-label:hover {
+        background-color: #e9ecef;
+        cursor: pointer;
+    }
+    .form-check-input:checked + .form-check-label {
+        background-color: #cfe2ff;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}

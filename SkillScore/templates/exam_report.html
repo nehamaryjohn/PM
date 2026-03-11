@@ -1,0 +1,147 @@
+{% extends "layout.html" %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    body { background-color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .report-card { border: none; border-radius: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .stat-box {
+        padding: 1.5rem;
+        border-radius: 16px;
+        background: white;
+        border: 1px solid #e2e8f0;
+    }
+    .badge-pass { background-color: #dcfce7; color: #166534; }
+    .badge-fail { background-color: #fee2e2; color: #991b1b; }
+    .badge-ready { background-color: #dbeafe; color: #1e40af; }
+    
+    @media print {
+        .btn, .sidebar, .nav { display: none !important; }
+        .report-card { box-shadow: none; border: 1px solid #ddd; }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Performance Report</h2>
+            <p class="text-muted"><i class="bi bi-journal-check me-2"></i>{{ exam.title }} | <span class="badge bg-light text-dark border">{{ exam.category }}</span></p>
+        </div>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-white border shadow-sm rounded-pill px-4">
+                <i class="bi bi-printer me-2"></i>Export PDF
+            </button>
+            <a href="/dashboard" class="btn btn-primary rounded-pill px-4">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="stat-box shadow-sm">
+                <small class="text-muted d-block mb-1">Total Submissions</small>
+                <h3 class="fw-bold mb-0">{{ reports|length }}</h3>
+            </div>
+        </div>
+        <div class="col-md-3">
+            {% set total_p = namespace(val=0) %}
+            {% for r in reports %}{% set total_p.val = total_p.val + (r.score / r.total_questions * 100) %}{% endfor %}
+            <div class="stat-box shadow-sm">
+                <small class="text-muted d-block mb-1">Average Score</small>
+                <h3 class="fw-bold mb-0">
+                    {% if reports|length > 0 %}{{ (total_p.val / reports|length) | int }}%{% else %}0%{% endif %}
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card report-card overflow-hidden">
+        <div class="card-header bg-white py-3 border-bottom">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="fw-bold mb-0">Student Breakdown</h5>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search"></i></span>
+                        <input type="text" id="studentSearch" class="form-control border-start-0" placeholder="Search student name...">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-muted small uppercase">
+                        <th class="ps-4">Student Name</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Result</th>
+                        <th>Status</th>
+                        <th class="pe-4">Submission Date</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    {% for r in reports %}
+                    {% set percent = (r.score / r.total_questions * 100) | int %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar-sm me-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem; font-weight: bold;">
+                                    {{ r.username[0] | upper }}
+                                </div>
+                                <span class="fw-semibold text-dark">{{ r.username }}</span>
+                            </div>
+                        </td>
+                        <td><span class="text-dark">{{ r.score }}</span> <span class="text-muted">/ {{ r.total_questions }}</span></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <span class="me-2 fw-bold">{{ percent }}%</span>
+                                <div class="progress flex-grow-1" style="height: 6px; min-width: 60px;">
+                                    <div class="progress-bar {% if percent >= 50 %}bg-success{% else %}bg-danger{% endif %}" style="width: {{ percent }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if percent >= 50 %}
+                            <span class="badge badge-pass rounded-pill px-3"><i class="bi bi-check-circle me-1"></i> PASS</span>
+                            {% else %}
+                            <span class="badge badge-fail rounded-pill px-3"><i class="bi bi-x-circle me-1"></i> FAIL</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if percent >= 75 %}
+                            <span class="badge badge-ready rounded-pill px-3">Placement Ready</span>
+                            {% elif percent >= 50 %}
+                            <span class="badge bg-light text-secondary rounded-pill px-3 border">Average</span>
+                            {% else %}
+                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3 border border-warning-subtle">Needs Training</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4 text-muted small">{{ r.timestamp }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <i class="bi bi-people text-light-emphasis display-4"></i>
+                            <p class="text-muted mt-2">No students have taken this exam yet.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Search Functionality
+    document.getElementById('studentSearch').addEventListener('keyup', function() {
+        let value = this.value.toLowerCase();
+        let rows = document.querySelectorAll('#reportTableBody tr');
+        rows.forEach(row => {
+            row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

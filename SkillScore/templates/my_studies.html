@@ -1,0 +1,181 @@
+{% extends "layout.html" %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    body {
+        background-color: #f8fafc;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .content-area {
+        padding-top: 2rem;
+    }
+
+    /* Modern Card Styling */
+    .note-card {
+        border: none;
+        border-radius: 24px;
+        background: #ffffff;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .note-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        border-color: #3b82f6;
+    }
+
+    /* Category Badge */
+    .bg-soft-primary {
+        background-color: #eff6ff;
+        color: #2563eb;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.025em;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Icon Box with Gradient */
+    .icon-box {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        color: #3b82f6;
+        transition: 0.3s;
+    }
+
+    .note-card:hover .icon-box {
+        background: #3b82f6;
+        color: #ffffff;
+    }
+
+    /* Action Button */
+    .btn-download {
+        background: #0f172a;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .btn-download:hover {
+        background: #334155;
+        color: white;
+        transform: scale(1.05);
+    }
+
+    /* Search Bar Design */
+    .search-container {
+        max-width: 500px;
+    }
+
+    .search-input {
+        border-radius: 15px;
+        border: 1px solid #e2e8f0;
+        padding: 12px 20px;
+        padding-left: 45px;
+        background: white;
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+</style>
+
+<div class="content-area container">
+    <div class="row align-items-center mb-5">
+        <div class="col-md-7">
+            <h2 class="fw-bold text-dark mb-2">My Studies</h2>
+            <p class="text-muted fs-5">Access your curated learning library.</p>
+        </div>
+        <div class="col-md-5">
+            <div class="search-container position-relative ms-auto">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="studySearch" class="form-control search-input shadow-sm" placeholder="Search by title, teacher, or category...">
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4" id="studyGrid">
+        {% for note in notes %}
+        <div class="col-md-6 col-lg-4 study-item">
+            <div class="card note-card p-4">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div class="icon-box shadow-sm">
+                        {% if 'pdf' in note.filename.lower() %}
+                            <i class="bi bi-file-earmark-pdf-fill fs-3"></i>
+                        {% elif 'doc' in note.filename.lower() %}
+                            <i class="bi bi-file-earmark-word-fill fs-3"></i>
+                        {% else %}
+                            <i class="bi bi-file-earmark-text-fill fs-3"></i>
+                        {% endif %}
+                    </div>
+                    <span class="badge bg-soft-primary rounded-pill text-uppercase">{{ note.category }}</span>
+                </div>
+
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold text-dark mb-2">{{ note.title }}</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
+                            <i class="bi bi-person text-secondary" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <p class="text-muted small mb-0">Prof. <strong>{{ note.teacher_name }}</strong></p>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <div class="text-muted small">
+                        <i class="bi bi-calendar3 me-1"></i> {{ note.timestamp[:10] }}
+                    </div>
+                    <a href="{{ url_for('download_file', filename=note.filename) }}" class="btn btn-download btn-sm shadow-sm">
+                        <i class="bi bi-cloud-arrow-down-fill me-2"></i>Download
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="py-5">
+                <i class="bi bi-folder2-open display-1 text-light-emphasis"></i>
+                <h3 class="mt-4 fw-bold text-secondary">Your library is empty</h3>
+                <p class="text-muted">Check back later for materials from your instructors.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Real-time Search Logic
+    document.getElementById('studySearch').addEventListener('keyup', function() {
+        const searchTerm = this.value.toLowerCase();
+        const items = document.querySelectorAll('.study-item');
+        
+        items.forEach(item => {
+            const text = item.innerText.toLowerCase();
+            if (text.includes(searchTerm)) {
+                item.style.display = 'block';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+<style>
+    :root {
+        --sidebar-bg: #0f172a;
+        --sidebar-accent: #38bdf8;
+        --sidebar-width: 260px;
+    }
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    
+    .sidebar {
+        width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0;
+        background: var(--sidebar-bg); color: white; padding: 1.5rem 1rem; z-index: 1000;
+        display: flex; flex-direction: column;
+    }
+    .sidebar a {
+        color: #94a3b8; text-decoration: none; padding: 0.8rem 1rem;
+        display: flex; align-items: center; border-radius: 8px; margin-bottom: 0.5rem; transition: 0.2s;
+    }
+    .sidebar a.active { background: var(--sidebar-accent); color: var(--sidebar-bg); }
+
+    .content-area { margin-left: var(--sidebar-width); padding: 2.5rem; }
+
+    .vacancy-card {
+        background: white; border-radius: 20px; padding: 2.5rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: none; max-width: 800px;
+    }
+    .form-label { font-weight: 700; color: #475569; font-size: 0.85rem; text-transform: uppercase; }
+    .input-group-text { background: #f1f5f9; border: 1px solid #e2e8f0; }
+</style>
+
+<nav class="sidebar">
+    <div class="brand" style="padding: 0 1rem 2rem; display: flex; align-items: center; gap: 10px;">
+        <i class="bi bi-shield-lock-fill" style="color: var(--sidebar-accent); font-size: 1.5rem;"></i>
+        <h3 class="fw-bold mb-0">AdminPanel</h3>
+    </div>
+    <a href="/admin/manage"><i class="bi bi-people-fill me-2"></i> User Control</a>
+    <a href="/admin/add_vacancy" class="active"><i class="bi bi-megaphone-fill me-2"></i> Post Vacancy</a>
+    <a href="/dashboard"><i class="bi bi-grid-1x2-fill me-2"></i> Main View</a>
+</nav>
+
+<div class="content-area">
+    <div class="vacancy-card">
+        <h2 class="fw-bold mb-1">Create New Job Vacancy</h2>
+        <p class="text-muted mb-4">Set eligibility based on SkillScore exam performance.</p>
+
+        <form action="/admin/add_vacancy" method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Job Title</label>
+                    <input type="text" name="title" class="form-control" placeholder="Software Engineer" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Company</label>
+                    <input type="text" name="company" class="form-control" placeholder="TechCorp Ltd" required>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label">Location</label>
+                    <input type="text" name="location" class="form-control" placeholder="Remote / New York" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="4" placeholder="Describe the role and responsibilities..."></textarea>
+                </div>
+                
+                <div class="col-12 mt-4">
+                    <div class="p-3 rounded-3" style="background: #fff7ed; border: 1px solid #ffedd5;">
+                        <h6 class="fw-bold text-warning mb-2"><i class="bi bi-shield-check me-2"></i>Eligibility Requirement</h6>
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <label class="mb-0 small fw-600">Minimum Exam Score To Apply:</label>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="input-group">
+                                    <input type="number" name="min_score" class="form-control" value="60" min="0" max="100">
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted x-small mt-2 mb-0 italic">*Students scoring below this percentage will be blocked from applying.</p>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-3 fw-bold">
+                        Publish Opportunity <i class="bi bi-send ms-2"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
