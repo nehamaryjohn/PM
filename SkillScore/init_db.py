@@ -1,11 +1,13 @@
 import os
 import sqlite3
+psycopg2_error = None
 try:
     import psycopg2
     from psycopg2.extras import RealDictCursor
-except ImportError:
+except Exception as e:
     psycopg2 = None
     RealDictCursor = None
+    psycopg2_error = str(e)
 from urllib.parse import urlparse
 from werkzeug.security import generate_password_hash
 
@@ -13,7 +15,8 @@ def get_connection():
     database_url = os.environ.get('DATABASE_URL')
     if database_url:
         if not psycopg2:
-            raise ImportError("psycopg2 is required for PostgreSQL support. Install it with 'pip install psycopg2-binary'")
+            print(f"PostgreSQL support enabled but psycopg2 could not be loaded: {psycopg2_error}")
+            raise ImportError(f"psycopg2 is required for PostgreSQL support. Import error: {psycopg2_error}")
         result = urlparse(database_url)
         username = result.username
         password = result.password

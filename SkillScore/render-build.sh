@@ -2,7 +2,7 @@
 # exit on error
 set -o errexit
 
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 # Initialize the database if it doesn't exist
 # This script is often used to run migrations too
