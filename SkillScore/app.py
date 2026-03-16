@@ -3,6 +3,13 @@ from flask import Flask, render_template, request, redirect, url_for, session, s
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 import sqlite3
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    psycopg2 = None
+    RealDictCursor = None
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 app.secret_key = 'skillscore_secret' # Used for session security
@@ -23,10 +30,66 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # --- DATABASE HELPER ---
+class DBWrapper:
+    def __init__(self, conn, db_type):
+        self.conn = conn
+        self.db_type = db_type
+
+    def execute(self, query, params=()):
+        if self.db_type == 'postgres':
+            # Convert SQLite ? placeholders to PostgreSQL %s
+            query = query.replace('?', '%s')
+            cur = self.conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute(query, params)
+            return cur
+        else:
+            return self.conn.execute(query, params)
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
+
+    def fetchone(self, query, params=()):
+        cur = self.execute(query, params)
+        return cur.fetchone()
+
+    def fetchall(self, query, params=()):
+        cur = self.execute(query, params)
+        return cur.fetchall()
+
+    def insert_get_id(self, query, params=()):
+        if self.db_type == 'postgres':
+            query = query.replace('?', '%s')
+            if 'RETURNING' not in query.upper():
+                query += ' RETURNING id'
+            cur = self.conn.cursor(cursor_factory=RealDictCursor)
+            cur.execute(query, params)
+            row = cur.fetchone()
+            return row['id']
+        else:
+            cur = self.conn.execute(query, params)
+            return cur.lastrowid
+
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    conn.row_factory = sqlite3.Row
-    return conn
+    database_url = os.environ.get('DATABASE_URL')
+    if database_url:
+        if not psycopg2:
+            raise ImportError("psycopg2 is required for PostgreSQL support. Install it with 'pip install psycopg2-binary'")
+        result = urlparse(database_url)
+        conn = psycopg2.connect(
+            database=result.path[1:],
+            user=result.username,
+            password=result.password,
+            host=result.hostname,
+            port=result.port
+        )
+        return DBWrapper(conn, 'postgres')
+    else:
+        conn = sqlite3.connect('database.db')
+        conn.row_factory = sqlite3.Row
+        return DBWrapper(conn, 'sqlite')
 
 # --- INITIALIZE DATABASE TABLES ---
 def init_db():
@@ -325,9 +388,8 @@ def create_exam():
         explanations = request.form.getlist('exp[]')
 
         db = get_db_connection()
-        cursor = db.execute('INSERT INTO exams (title, category, created_by, status) VALUES (?, ?, ?, "active")',
-                            (title, category, teacher_id))
-        exam_id = cursor.lastrowid
+        exam_id = db.insert_get_id('INSERT INTO exams (title, category, created_by, status) VALUES (?, ?, ?, "active")',
+                                    (title, category, teacher_id))
         
         for i in range(len(q_texts)):
             db.execute('''INSERT INTO questions 
